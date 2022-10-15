@@ -1,0 +1,13 @@
+form.register {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.register input[type='text'] {
+  height: 50px;
+}
+
+* {
+  margin: 10px;
+}
