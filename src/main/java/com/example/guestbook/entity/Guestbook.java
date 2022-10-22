@@ -9,20 +9,20 @@ import javax.persistence.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@ToString(exclude = "writer")
 public class Guestbook extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
+    @Column(name = "guestbook_id")
     private Long id;
 
-    @Column(length = 100, nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id")
+    private Member writer;
+
     private String title;
 
-    @Column(length = 1500, nullable = false)
     private String content;
-
-    @Column(length = 50, nullable = true)
-    private String writer;
 
     public void updateGuestbook(String title, String content){
         this.title = title;

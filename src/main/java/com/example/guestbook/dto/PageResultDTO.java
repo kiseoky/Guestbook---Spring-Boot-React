@@ -1,5 +1,6 @@
 package com.example.guestbook.dto;
 
+import com.example.guestbook.entity.Guestbook;
 import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class PageResultDTO<DTO, EN> {
 
         setPageList(result);
     }
+
 
     private void setPageList(Page<EN> result) {
         Pageable pageable = result.getPageable();

@@ -1,11 +1,11 @@
 package com.example.guestbook.service;
 
-import com.example.guestbook.dto.GuestbookDTO;
-import com.example.guestbook.dto.PageRequestDTO;
-import com.example.guestbook.dto.PageResultDTO;
+import com.example.guestbook.dto.*;
 import com.example.guestbook.entity.Guestbook;
 import com.example.guestbook.entity.QGuestbook;
+import com.example.guestbook.entity.Reply;
 import com.example.guestbook.repository.GuestbookRepository;
+import com.example.guestbook.repository.ReplyRepository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.RequiredArgsConstructor;
@@ -15,16 +15,20 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
+@Transactional
 public class GuestbookServiceImpl implements GuestbookService {
 
     private final GuestbookRepository guestbookRepository;
+    private final ReplyRepository replyRepository;
 
     @Override
     public Long register(GuestbookDTO guestbookDTO) {
@@ -40,15 +44,23 @@ public class GuestbookServiceImpl implements GuestbookService {
         return guestbook.getId();
     }
 
-    @Override
-    public GuestbookDTO read(Long id) {
-        Optional<Guestbook> guestbook = guestbookRepository.findById(id);
 
-        return guestbook.isPresent() ? entityToDto(guestbook.get()) : null;
+
+    @Override
+    public GuestbookDTO get(Long id) {
+        GuestbookWithReplyCountDTO guestbookWithReplyCountDTO = guestbookRepository.getGuestbookById(id).get(0);
+
+        return entityToDto(guestbookWithReplyCountDTO.getGuestbook(),guestbookWithReplyCountDTO.getWriter() ,guestbookWithReplyCountDTO.getReplyCount());
     }
 
     @Override
     public void remove(Long id) {
+        guestbookRepository.deleteById(id);
+    }
+
+    @Override
+    public void removeWithReplies(Long id) {
+        replyRepository.removeByGuestbookId(id);
         guestbookRepository.deleteById(id);
     }
 
@@ -64,14 +76,13 @@ public class GuestbookServiceImpl implements GuestbookService {
 
     }
 
-    public PageResultDTO<GuestbookDTO, Guestbook> list(PageRequestDTO requestDTO) {
+    public PageResultDTO<GuestbookDTO, GuestbookWithReplyCountDTO> list(PageRequestDTO requestDTO) {
         Pageable pageable = requestDTO.getPageable(Sort.by("id").descending());
-        BooleanBuilder search = getSearch(requestDTO);
-        Page<Guestbook> result = guestbookRepository.findAll(search, pageable);
-        Function<Guestbook, GuestbookDTO> guestbookEntityToDto = ((entity) ->
-                entityToDto(entity)
+        Page<GuestbookWithReplyCountDTO> result = guestbookRepository.getGuestbookWithReplyCount(pageable);
+        Function<GuestbookWithReplyCountDTO, GuestbookDTO> fn = ((dto) ->
+                entityToDto((dto.getGuestbook()), dto.getWriter(), dto.getReplyCount())
         );
-        return new PageResultDTO<>(result, guestbookEntityToDto);
+        return new PageResultDTO<>(result, fn);
     }
 
     private BooleanBuilder getSearch(PageRequestDTO pageRequestDTO) {
@@ -97,9 +108,9 @@ public class GuestbookServiceImpl implements GuestbookService {
         if (type.contains("c")) {
             conditionBuilder.or(qGuestbook.content.contains(keyword));
         }
-        if (type.contains("w")) {
-            conditionBuilder.or(qGuestbook.writer.contains(keyword));
-        }
+//        if (type.contains("w")) {
+//            conditionBuilder.or(qGuestbook.writer.contains(keyword));
+//        }
         booleanBuilder.and(conditionBuilder);
         return booleanBuilder;
     }
