@@ -7,6 +7,7 @@ import lombok.extern.java.Log;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -64,5 +65,32 @@ class ReplyRepositoryTest {
         System.out.println("reply = " + reply);
         System.out.println("reply.getGuestbook() = " + reply.getGuestbook());
 
+    }
+
+    @Test
+    @Transactional
+    @Commit
+    public void 양방향테스트(){
+
+        Member member = memberRepository.findTopByOrderByIdDesc();
+        Guestbook guestbook = Guestbook.builder()
+                .title("Title " + 959)
+                .content("Content " + 959)
+                .writer(member)
+                .build();
+        Reply reply = Reply.builder()
+                .guestbook(guestbook)
+                .writer(member)
+                .text("reply..." + 959)
+                .build();
+        member.addGuestbook(guestbook);
+        member.addReply(reply);
+        guestbookRepository.save(guestbook);
+        replyRepository.save(reply);
+        memberRepository.save(member);
+
+        Member savedMember = memberRepository.findById(member.getId()).get();
+        System.out.println("savedMember.getGuestbooks() = " + savedMember.getGuestbooks());
+        System.out.println("savedMember.replies() = " + savedMember.getReplies());
     }
 }

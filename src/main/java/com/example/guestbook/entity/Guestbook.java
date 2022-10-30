@@ -3,6 +3,8 @@ package com.example.guestbook.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -27,5 +29,18 @@ public class Guestbook extends BaseEntity {
     public void updateGuestbook(String title, String content){
         this.title = title;
         this.content = content;
+    }
+
+
+    @OneToMany(mappedBy = "guestbook")
+    private List<Reply> replies = new ArrayList<>();
+    public void setWriter(Member writer) {
+        this.writer = writer;
+        writer.getGuestbooks().add(this);
+    }
+
+    public void addReply(Reply reply) {
+        reply.setGuestbook(this);
+        this.replies.add(reply);
     }
 }

@@ -26,4 +26,13 @@ public class Reply extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guestbook_id")
     private Guestbook guestbook;
+
+    public void setWriter(Member writer) {
+        this.writer = writer;
+        writer.getReplies().add(this);
+    }
+    public void setGuestbook(Guestbook guestbook) {
+        this.guestbook = guestbook;
+        guestbook.getReplies().add(this);
+    }
 }

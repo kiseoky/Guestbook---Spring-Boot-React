@@ -18,6 +18,8 @@ public interface GuestbookRepository extends JpaRepository<Guestbook, Long>, Que
     @Query("select new com.example.guestbook.dto.GuestbookWithWriterDTO(g, w) from Guestbook g left join g.writer w where g.id = :guestbook_id")
     List<GuestbookWithWriterDTO> getGuestbookWithWriter(@Param("guestbook_id") Long id);
 
+
+
     @Query("select g, r from Guestbook g left join Reply r on g = r.guestbook where g.id =:guestbook_id")
     List<Object[]> getGuestbookWithReply(@Param("guestbook_id") Long id);
 
